@@ -11,8 +11,8 @@ void main() {
       return Response(json.encode([1, 2, 3, 4]), 200);
     });
 
-    final ids = await newsApi.fetchTopIds();
-    final expectation = [1, 2, 3, 4];
+    final List<int> ids = await newsApi.fetchTopIds();
+    final List<int> expectation = [1, 2, 3, 4];
     print(
         'typeids = ${ids.runtimeType}, myexpectaion is = ${expectation.runtimeType}');
     expect(ids, expectation);
