@@ -28,6 +28,7 @@ class StoriesBloc extends BlocBase {
   ScanStreamTransformer<int, Map<int, Future<ItemModel>>> _itemsTransformer() {
     return ScanStreamTransformer(
       (cache, id, _) {
+        print(id);
         cache[id] = _repository.fetchitem(id);
         return cache;
       },
