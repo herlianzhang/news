@@ -8,27 +8,28 @@ export 'package:news/src/bloc_helpers/bloc_provider.dart';
 class StoriesBloc extends BlocBase {
   final _repository = Repository();
   final _topIds = PublishSubject<List<int>>();
-  final _items = BehaviorSubject<int>();
-
-  Stream<Map<int, Future<ItemModel>>> items;
+  final _itemsOutput = BehaviorSubject<Map<int, Future<ItemModel>>>();
+  final _itemsFetcher = PublishSubject<int>();
 
   Stream<List<int>> get topIds => _topIds.stream;
 
-  Function(int) get fetchItem => _items.sink.add;
+  Stream<Map<int, Future<ItemModel>>> get items => _itemsOutput.stream;
+
+  Function(int) get fetchItem => _itemsFetcher.sink.add;
 
   StoriesBloc() {
-    items = _items.stream.transform(_itemsTransformer());
+    _itemsFetcher.stream.transform(_itemsTransformer()).pipe(_itemsOutput);
   }
 
-  void fetchTopIds() async {
+  Future<void> fetchTopIds() async {
     final ids = await _repository.fetchTopIds();
     _topIds.sink.add(ids);
   }
 
   ScanStreamTransformer<int, Map<int, Future<ItemModel>>> _itemsTransformer() {
     return ScanStreamTransformer(
-      (cache, id, _) {
-        print(id);
+      (cache, id, index) {
+        print(index);
         cache[id] = _repository.fetchitem(id);
         return cache;
       },
@@ -36,9 +37,14 @@ class StoriesBloc extends BlocBase {
     );
   }
 
+  clearCache() {
+    return _repository.clearCache();
+  }
+
   @override
   void dispose() {
     _topIds.close();
-    _items.close();
+    _itemsOutput.close();
+    _itemsFetcher.close();
   }
 }
